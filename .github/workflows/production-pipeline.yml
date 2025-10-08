@@ -1,15 +1,21 @@
-name: Production Pipeline (Offline Test)
+name: Main Pipeline (SonarCloud + Trivy)
+
 on:
   push:
     branches: [main]
 
 jobs:
-  build-test:
+  build-test-scan:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
       - name: Install dependencies
         run: npm install
@@ -18,7 +24,30 @@ jobs:
         run: npm test
 
       - name: Build Docker image
-        run: docker build -t cicd-demo:test .
+        run: docker build -t cicd-demo:main .
+
+      # 🧩 Setup Java for SonarCloud
+      - name: Setup Java for SonarCloud
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # 🔍 SonarCloud Code Quality Scan
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+      # 🛡️ Trivy Vulnerability Scan
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: cicd-demo:main
+          format: "table"
+          vuln-type: "os,library"
+          exit-code: "0"
 
       - name: Pipeline complete
-        run: echo "✅ Production pipeline completed successfully (offline test)"
+        run: echo "✅ Main pipeline completed successfully (SonarCloud + Trivy)"
