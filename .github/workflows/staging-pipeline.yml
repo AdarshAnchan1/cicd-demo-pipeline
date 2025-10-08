@@ -26,6 +26,13 @@ jobs:
       - name: Build Docker image
         run: docker build -t cicd-demo:test .
 
+      # 🧩 FIX: Set up Java 17 before SonarCloud Scan
+      - name: Setup Java for SonarCloud
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
       # 🔍 SonarCloud Code Quality Scan
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v1
