@@ -1,0 +1,32 @@
+version: 1
+language: en
+
+review:
+  enabled: true
+  style: concise
+  max_comments: 40
+  categories:
+    - security
+    - bugs
+    - code_quality
+    - performance
+    - documentation
+  exclude:
+    - node_modules/**
+    - dist/**
+    - coverage/**
+    - .github/**
+    - Dockerfile
+    - **/*.yaml
+    - **/*.yml
+suggestions:
+  enabled: true
+  auto_apply: false
+  max_suggestions: 10
+
+tone:
+  type: professional
+  detail_level: high
+  summary: true
+
+ai_model: gpt-4o
