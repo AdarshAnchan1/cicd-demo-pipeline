@@ -1,44 +1,24 @@
-name: Production Pipeline
+name: Production Pipeline (Offline Test)
 on:
   push:
     branches: [main]
 
 jobs:
-  production:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Run Regression Tests
+      - name: Run tests
         run: npm test
 
-      - name: SonarQube Scan (Strict)
-        uses: sonarsource/sonarqube-scan-action@v1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: .
+      - name: Build Docker image
+        run: docker build -t cicd-demo:test .
 
-      - name: Build Docker Image
-        run: docker build -t gcr.io/${{ secrets.PROJECT_ID }}/cicd-demo:prod .
-
-      - name: Twistlock Security Scan
-        run: echo "Simulated Twistlock scan successful"
-
-      - name: Manual Approval
-        uses: chrnorm/deployment-approval-action@v2
-        with:
-          approvers: you@example.com
-
-      - name: Deploy to Cloud Run (Production)
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: cicd-demo-prod
-          image: gcr.io/${{ secrets.PROJECT_ID }}/cicd-demo:prod
-          region: us-central1
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      - name: Pipeline complete
+        run: echo "✅ Production pipeline completed successfully (offline test)"

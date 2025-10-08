@@ -1,39 +1,24 @@
-name: Staging Pipeline
+name: Staging Pipeline (Offline Test)
 on:
   push:
     branches: [staging]
 
 jobs:
-  staging:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Run Tests
+      - name: Run tests
         run: npm test
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: .
+      - name: Build Docker image
+        run: docker build -t cicd-demo:test .
 
-      - name: Build Docker Image
-        run: docker build -t gcr.io/${{ secrets.PROJECT_ID }}/cicd-demo:staging .
-
-      - name: Twistlock Scan
-        run: echo "Simulated Twistlock scan successful"
-
-      - name: Deploy to Cloud Run (Staging)
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: cicd-demo-staging
-          image: gcr.io/${{ secrets.PROJECT_ID }}/cicd-demo:staging
-          region: us-central1
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      - name: Pipeline complete
+        run: echo "✅ Staging pipeline completed successfully (offline test)"
